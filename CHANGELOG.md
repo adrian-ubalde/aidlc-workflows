@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.12] - 2026-07-08
+
+Unit kinds prune the per-unit construction design matrix. Tag each Unit of Work in units-generation's edge block with an optional `kind:` (service, spec, ui, packaging, or library) and the four construction design stages (functional-design, nfr-requirements, nfr-design, infrastructure-design) now emit and require only the artifacts that apply to that kind: a spec unit owes no scalability doc, a packaging unit no business-logic model. A unit with no kind, a stage with no per-kind map, or an artifact left unannotated all behave exactly as before (the full matrix), so existing workflows are unchanged. A unit whose required set prunes to empty is covered by definition (the stage does not apply to it). **Upgrade:** re-copy your `dist/<harness>/` shell into the project; an older engine run against a kind-tagged edge block fails the units-generation gate loudly (re-copy dist to fix) rather than pruning wrong.
+
+* NEW optional `kind:` key on each unit in units-generation's `unit-of-work-dependency.md` edge block: one of `service | spec | ui | packaging | library`. An invalid value fails the `required-sections` sensor at the units-generation gate (edge block reported malformed), the same fail-loud channel a dangling dependency uses; omit the key to keep a unit on the full design-artifact matrix.
+* NEW `produces_kinds:` stage frontmatter field (a map of artifact name to the unit kinds it applies to) on the four construction design stages. An artifact may live in `produces:` or `optional_produces:`; the schema validator rejects a map key that names no entry in either list, an unknown kind, or an empty kind list. An artifact not listed in the map applies to all kinds.
+* The engine prunes both the run-stage directive's `produces` paths (required and optional alike) and the per-unit coverage check to the current unit's kind, so the conductor is never pointed at, and the approve-path guard never demands, an artifact the unit does not owe. Kind pruning composes with `optional_produces:`: an optional artifact still resolves into the directive for the kinds it applies to and stays exempt from coverage.
+* A per-unit construction stage where every unit's required set prunes to empty now approves as a no-op (the stage does not apply to any unit) instead of deadlocking at the artifact guard.
+
 ## [2.2.10] - 2026-07-06
 
 Workspace detection now recognizes git submodules. A workspace whose code lives in uninitialized submodules (empty dirs plus a `.gitmodules` file) previously scanned as Greenfield, so reverse-engineering was auto-skipped and every design stage ran with zero code understanding. The scanner gains a sixth brownfield signal: a parseable `.gitmodules` with at least one submodule path entry classifies the workspace Brownfield. When submodule paths are uninitialized, the scan warns and names the remedy (`git submodule update --init --recursive`) at birth, in the doctor report, and on `detect`. Languages stay as scanned (Unknown is truthful until the submodules are fetched). **Upgrade:** re-copy your `dist/<harness>/` shell into the project.
@@ -79,10 +88,6 @@ Stops help requests from accidentally creating intents. `/aidlc intent help` was
 * The "Unknown intent" error from a failed `/aidlc intent <name>` switch no longer suggests describing new work; it points at the read-only `/aidlc intent` listing and explicitly says not to start a new workflow to recover. The "Unknown space" error likewise no longer instructs creating the missing space - creation stays a separate, deliberate move.
 * The orchestrator skill's second-intent CONFIRM step named the wrong binary (`aidlc-utility.ts next ...`, which dies with a usage error listing `intent-birth` - a guard-bypass temptation); it now names `aidlc-orchestrate.ts next` on all four harnesses.
 * The Codex orchestrator skill's forwarding loop now tells the conductor to drop the leading `$aidlc`/`/aidlc` invocation marker and forward the remaining text as separate arguments (observed live on Codex exec: the conductor echoed the whole slash line as one quoted token, which hid `intent help` from the router and dead-ended on a scope ask). The engine deliberately does NOT try to repair marker-prefixed input - a mangled echo lands in the scope-confirmation ask, a safe human gate.
-||||||| parent of ef64a3e (fix: detect nested projects in workspace detection (2.2.7))
-||||||| parent of 48f8b61 (fix: bound the compose-pending carve-out and guard recompose against autonomy (2.2.8))
-||||||| parent of 4fd686b (fix: exempt optional produces from per-unit coverage so conditional artifacts can be skipped (2.2.9))
-||||||| parent of 4ad1db9 (fix: detect git submodules as a brownfield signal in workspace detection (2.2.10))
 
 ## [2.2.0] - 2026-07-04
 
