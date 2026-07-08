@@ -869,6 +869,9 @@ If the `run-stage` directive includes a `reviewer` field (non-null), the orchest
    - Reads the artifact(s) to evaluate what WAS produced
    - Runs any validation tools listed (via shell) and includes results in findings
    - Appends a `## Review` section to the primary artifact file with verdict: READY or NOT-READY
+   - Returns a response whose FIRST line is its identity marker verbatim
+     (`**Reviewer:** <reviewer-agent-name>`), so the `SUBAGENT_COMPLETED` audit
+     event records which reviewer ran. The reviewer's persona owns this contract.
 
 3. **Read verdict.** After the reviewer returns, read the `## Review` section from the primary artifact:
    - **READY** → proceed to §13 learnings ritual then the approval gate
