@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.2.12] - 2026-07-08
+## [2.2.12] - 2026-07-09
 
 Unit kinds prune the per-unit construction design matrix. Tag each Unit of Work in units-generation's edge block with an optional `kind:` (service, spec, ui, packaging, or library) and the four construction design stages (functional-design, nfr-requirements, nfr-design, infrastructure-design) now emit and require only the artifacts that apply to that kind: a spec unit owes no scalability doc, a packaging unit no business-logic model. A unit with no kind, a stage with no per-kind map, or an artifact left unannotated all behave exactly as before (the full matrix), so existing workflows are unchanged. A unit whose required set prunes to empty is covered by definition (the stage does not apply to it). **Upgrade:** re-copy your `dist/<harness>/` shell into the project; an older engine run against a kind-tagged edge block fails the units-generation gate loudly (re-copy dist to fix) rather than pruning wrong.
 
